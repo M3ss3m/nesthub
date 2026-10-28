@@ -39,6 +39,98 @@
   //   title = kopje linksboven
   //   icon  = emoji, bv. 🗑️
   //   kleur = rood | oranje | groen | blauw | paars | grijs, of een hexcode zonder # (bv. ff8800)
+  const raw = new URLSearchParams(location.search);
+  // Homey zet emoji soms om naar codes als &#127807; -> hier terugzetten
+  function decode(s) {
+    if (!s) return s;
+    const t = document.createElement("textarea");
+    t.innerHTML = s;
+    return t.value;
+  }
+  const p = { get: k => decode(raw.get(k)) };
+  const kleuren = { rood:"#ff4d4d", oranje:"#ff9f1a", groen:"#2ecc71", blauw:"#4f9cff",
+                    paars:"#a66bff", grijs:"#9aa4b2" };
+  const k = (p.get("kleur") || "").toLowerCase();
+  const accent = kleuren[k] || (/^[0-9a-f]{6}$/i.test(k) ? "#" + k : null);
+  if (accent) document.documentElement.style.setProperty("--accent", accent);
+
+  const msgEl = document.getElementById("msg");
+  const tekst = p.get("msg") || "Geen bericht";
+  tekst.split("|").forEach((regel, i) => {
+    if (i) msgEl.appendChild(document.createElement("br"));
+    msgEl.appendChild(document.createTextNode(regel.trim()));
+  });
+  document.getElementById("sub").textContent = p.get("sub") || "";
+  document.getElementById("title").textContent = p.get("title") || "";
+  document.getElementById("icon").textContent = p.get("icon") || "";
+
+  // Tekst zo groot mogelijk laten passen
+  function fit() {
+    const main = document.querySelector("main");
+    let lo = 24, hi = 220;
+    while (lo < hi) {
+      const mid = Math.ceil((lo + hi) / 2);
+      msgEl.style.fontSize = mid + "px";
+      (main.scrollHeight <= main.clientHeight && msgEl.scrollWidth <= main.clientWidth)
+        ? lo = mid : hi = mid - 1;
+    }
+    msgEl.style.fontSize = lo + "px";
+  }
+
+  function klok() {
+    const d = new Date();
+    document.getElementById("clock").textContent =
+      d.toLocaleTimeString("nl-NL", { hour:"2-digit", minute:"2-digit" });
+  }
+
+  klok(); setInterval(klok, 10000);
+  window.addEventListener("resize", fit);
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(fit);
+  fit();
+</script>
+</body>
+</html>
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nest Hub Tekst</title>
+<style>
+  :root { --bg:#111418; --fg:#ffffff; --accent:#4f9cff; --muted:rgba(255,255,255,.6); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); color:var(--fg);
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  body { display:flex; flex-direction:column; padding:28px 40px; }
+  header { display:flex; justify-content:space-between; align-items:center; color:var(--muted);
+    font-size:28px; height:40px; }
+  #title { color:var(--accent); font-weight:600; text-transform:uppercase; letter-spacing:.08em; }
+  main { flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center;
+    text-align:center; gap:16px; min-height:0; }
+  #icon { font-size:110px; line-height:1; }
+  #icon:empty { display:none; }
+  #msg { font-weight:700; line-height:1.1; word-break:break-word; max-width:100%; }
+  #sub { font-size:34px; color:var(--muted); }
+  #sub:empty { display:none; }
+  footer { height:6px; border-radius:3px; background:var(--accent); opacity:.8; }
+</style>
+</head>
+<body>
+  <header><span id="title"></span><span id="clock"></span></header>
+  <main>
+    <div id="icon"></div>
+    <div id="msg"></div>
+    <div id="sub"></div>
+  </main>
+  <footer></footer>
+
+<script>
+  // Parameters:
+  //   msg   = hoofdtekst (gebruik | voor een nieuwe regel)
+  //   sub   = kleine tekst eronder
+  //   title = kopje linksboven
+  //   icon  = emoji, bv. 🗑️
+  //   kleur = rood | oranje | groen | blauw | paars | grijs, of een hexcode zonder # (bv. ff8800)
   const p = new URLSearchParams(location.search);
   const kleuren = { rood:"#ff4d4d", oranje:"#ff9f1a", groen:"#2ecc71", blauw:"#4f9cff",
                     paars:"#a66bff", grijs:"#9aa4b2" };
